@@ -40,8 +40,6 @@ def change_filename(filename):
 @admin.route("/")
 @admin_login_req
 def index():
-    session.pop('login_admin', None)  # 删除session中的登录账号
-    session.pop('admin_id', None)
     return render_template("admin/index.html")
 
 

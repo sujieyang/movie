@@ -13,7 +13,7 @@ app.config["UP_DIR"]=os.path.join(os.path.abspath(os.path.dirname(__file__)),"st
 app.config["FC_DIR"] = os.path.join(os.path.abspath(os.path.dirname(__file__)), "static/uploads/users/")
 app.debug = True
 db=SQLAlchemy(app)
-app.config['REDIS_URL'] = 'redis://localhost:3306/0'
+app.config['REDIS_URL'] = 'redis://127.0.0.1:5000/0'
 rd = FlaskRedis(app)
 from app.home import  home as home_blueprint
 from app.admin import admin as admin_blueprint

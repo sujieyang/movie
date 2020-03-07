@@ -1,13 +1,15 @@
-#coding:utf8
+# coding:utf8
 from . import home
-from flask import render_template,redirect,url_for,flash,session,request,Response
+from flask import render_template, redirect, url_for, flash, session, request, Response
 from werkzeug.security import generate_password_hash
-from app.models import User,Userlog,Preview,Tag,Movie,Comment,Moviecol
-from app.home.forms import RegistForm,LoginForm,UserdetailForm,PwdForm,CommentForm
-from app import db,app,rd
-import uuid,os,datetime
+from app.models import User, Userlog, Preview, Tag, Movie, Comment, Moviecol
+from app.home.forms import RegistForm, LoginForm, UserdetailForm, PwdForm, CommentForm
+from app import db, app, rd
+import uuid, os, datetime
 from werkzeug.utils import secure_filename
 from functools import wraps
+
+
 # 登录装饰器
 def user_login_required(f):
     @wraps(f)
@@ -15,13 +17,16 @@ def user_login_required(f):
         if "user" not in session:
             return redirect(url_for("home.login", next=request.url))
         return f(*args, **kwargs)
+
     return decorated_function
+
 
 # 修改文件名称
 def change_filename(filename):
     fileinfo = os.path.splitext(filename)
     filename = datetime.datetime.now().strftime("%Y%m%d%H%M%S") + str(uuid.uuid4().hex) + fileinfo[-1]
     return filename
+
 
 # 会员登录
 @home.route('/login/', methods=['GET', 'POST'])
@@ -46,6 +51,7 @@ def login():
         return redirect(url_for('home.user'))  # 跳转到会员中心
     return render_template("home/login.html", form=form)
 
+
 # 会员退出
 @home.route('/logout/')
 @user_login_required
@@ -53,6 +59,7 @@ def logout():
     session.pop("user", None)
     session.pop("user_id", None)
     return redirect(url_for("home.login"))
+
 
 # 会员注册
 @user_login_required
@@ -71,8 +78,7 @@ def regist():
         db.session.add(user)
         db.session.commit()
         flash("会员注册成功", "ok")
-    return render_template("home/regist.html",form=form)
-
+    return render_template("home/regist.html", form=form)
 
 
 # 会员详情
@@ -121,6 +127,7 @@ def user():
         return redirect(url_for('home.user'))
     return render_template("home/user.html", form=form, user=user)
 
+
 # 修改密码
 @home.route('/pwd/', methods=['GET', 'POST'])
 @user_login_required
@@ -136,6 +143,7 @@ def pwd():
         return redirect(url_for('home.logout'))
     return render_template("home/pwd.html", form=form)
 
+
 # 会员评论记录
 @home.route('/comments/<int:page>/')
 @user_login_required
@@ -148,16 +156,18 @@ def comments(page=None):
     ).order_by(Comment.addtime.desc()).paginate(page=page, per_page=5)
     return render_template("home/comments.html", page_data=page_data)
 
+
 # 会员登录日志
 @home.route('/loginlog/<int:page>')
 @user_login_required
 def loginlog(page):
     if page == None:
-        page=1
+        page = 1
     page_data = Userlog.query.filter_by(
         user_id=int(session['user_id'])
     ).order_by(Userlog.addtime.desc()).paginate(page=page, per_page=10)
     return render_template("home/loginlog.html", page_data=page_data)
+
 
 # 电影收藏
 @home.route('/moviecol/<int:page>/')
@@ -170,6 +180,7 @@ def moviecol(page=None):
         User.id == session['user_id']
     ).order_by(Moviecol.addtime.desc()).paginate(page=page, per_page=10)
     return render_template("home/moviecol.html", page_data=page_data)
+
 
 # 添加电影收藏
 @home.route('/moviecol/add/', methods=['GET'])
@@ -195,6 +206,7 @@ def moviecol_add():
         data = dict(ok=1)
     import json
     return json.dumps(data)
+
 
 # 首页
 @home.route('/<int:page>/', methods=['GET'])
@@ -233,7 +245,7 @@ def index(page=None):
 
     # 分页
     if page is None:
-        page =1
+        page = 1
     page_data = page_data.paginate(page=page, per_page=10)
 
     p = dict(
@@ -245,11 +257,13 @@ def index(page=None):
     )
     return render_template("home/index.html", tags=tags, p=p, page_data=page_data)
 
+
 # 上映预告
 @home.route('/animation/')
 def animation():
     data = Preview.query.all()
     return render_template("home/animation.html", data=data)
+
 
 # 电影搜索
 @home.route('/search/<int:page>/')
@@ -260,9 +274,10 @@ def search(page=None):
     page_data = Movie.query.filter(
         Movie.title.ilike("%" + key + "%")
     ).order_by(Movie.addtime.desc()).paginate(page=page, per_page=10)  # 根据获取到的key值在数据库中进行模糊查询
-    page_data.key=key
+    page_data.key = key
     movie_count = Movie.query.filter(Movie.title.ilike("%" + key + "%")).count()
     return render_template("home/search.html", key=key, page_data=page_data, movie_count=movie_count)
+
 
 # 电影播放页
 @home.route('/play/<int:id>/<int:page>/', methods=['GET', 'POST'])
@@ -299,7 +314,8 @@ def play(id=None, page=None):
         return redirect(url_for('home.play', id=movie.id, page=1))
     db.session.add(movie)
     db.session.commit()
-    return render_template("home/play.html", movie=movie ,form=form, page_data=page_data)
+    return render_template("home/play.html", movie=movie, form=form, page_data=page_data)
+
 
 # 弹幕播放器
 @home.route('/video/<int:id>/<int:page>/', methods=['GET', 'POST'])
@@ -338,19 +354,20 @@ def video(id=None, page=None):
     db.session.commit()
     return render_template("home/video.html", movie=movie, form=form, page_data=page_data)
 
+
 # 弹幕
 @home.route("/dm/", methods=["GET", "POST"])
 def dm():
     import json
     if request.method == "GET":
-        #获取弹幕消息队列
+        # 获取弹幕消息队列
         id = request.args.get('id')
         key = "movie" + str(id)
         if rd.llen(key):
             msgs = rd.lrange(key, 0, 2999)
             res = {
                 "code": 1,
-                "danmaku": [json.loads(v) for v in msgs]
+                "danmaku": [json.loads(v).decode('utf-8') for v in msgs]
             }
         else:
             res = {
@@ -359,17 +376,16 @@ def dm():
             }
         resp = json.dumps(res)
     if request.method == "POST":
-        #添加弹幕
+        # 添加弹幕
         data = json.loads(request.get_data())
         msg = {
-            "__v": 0,
             "author": data["author"],
-            "time": data["time"],
-            "text": data["text"],
             "color": data["color"],
+            "id": datetime.datetime.now().strftime("%Y%m%d%H%M%S") + uuid.uuid4().hex,
+            "text": data["text"],
+            "time": data["time"],
             "type": data['type'],
             "ip": request.remote_addr,
-            "_id": datetime.datetime.now().strftime("%Y%m%d%H%M%S") + uuid.uuid4().hex,
             "player": [
                 data["player"]
             ]
@@ -379,5 +395,5 @@ def dm():
             "data": msg
         }
         resp = json.dumps(res)
-        rd.lpush("movie" + str(data["player"]), json.dumps(msg))
+        rd.lpush("movie{0}".format(str(data["player"])), json.dumps(msg))
     return Response(resp, mimetype='application/json')

@@ -36,7 +36,7 @@
                 <span class="icon-bar"></span>
             </button>
             <a href="{{url_for('home.index',page=1) }}" class="navbar-brand" style="width:250px;">
-                <img src="{{ url_for('static',filename='base/images/logo.png') }}" style="height:30px;">&nbsp;微电影
+                <img src="{{ url_for('static',filename='base/images/Logo.png') }}" style="height:30px;">&nbsp;微电影
             </a>
         </div>
         <!--小屏幕导航按钮和logo-->
@@ -127,6 +127,18 @@
             effect: "fadeIn"
         });
     });
+</script>
+<script>
+    $(document).ready(function() {
+        $("img.lazy").lazyload({
+            effect: "fadeIn"
+        });
+        $('#do_search').click(function () {
+            var key = $('#key_movie').val();
+            location.href="{{url_for('home.search', page=1)}}?key=" + key
+        })
+    });
+
 
 
 </script>
